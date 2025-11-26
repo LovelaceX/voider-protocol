@@ -53,7 +53,7 @@ MIT — use it, fork it, build on it. privacy should be accessible to everyone.
 
 Contributions welcome. Please open an issue first to discuss what you would like to change.
 
-If you find a security vulnerability, please report it privately to security@voider.dev.
+If you find a security vulnerability, please report it privately to teamvoider@protonmail.com.
 
 ---
 
