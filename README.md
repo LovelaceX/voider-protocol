@@ -1,51 +1,60 @@
-# Voider Protocol
+# ∅ voider-protocol
 
-Open-source end-to-end encryption protocol used by [Voider](https://voider.app) for secure file transfers.
+**Zero-knowledge, quantum-resistant encryption for ephemeral file sharing.**
 
-## Security Guarantees
+This is the open-source cryptographic library powering [voider](https://voider.app) — private file sharing that's encrypted, ephemeral, and open source.
 
-- **Client-side encryption** - All encryption happens in your browser
-- **Zero-knowledge** - Server never sees filenames, file contents, or metadata
-- **Post-quantum ready** - CRYSTALS-Kyber (ML-KEM-768) protects against future quantum attacks
-- **Key never leaves your device** - Encryption key stays in URL fragment (`#`), never sent to server
+## What's Included
 
-## Algorithms Used
-
-### File Transfers
-- **Key Exchange**: CRYSTALS-Kyber (ML-KEM-768) - NIST post-quantum standard
-- **Symmetric Encryption**: AES-256-GCM
-- **Chunk Size**: 1MB with unique IV per chunk
+- **CRYSTALS-Kyber (ML-KEM-768)** — NIST FIPS 203 standardized post-quantum key exchange
+- **AES-256-GCM** — symmetric encryption via Web Crypto API
+- **Streaming encryption** — process 15GB files with <10MB memory footprint
+- **Zero-knowledge architecture** — keys never touch the server
 
 ## How It Works
 
-### Upload Flow
-1. Browser generates Kyber keypair
-2. Encapsulation produces shared secret + ciphertext
-3. Shared secret becomes AES-256-GCM key
-4. File is chunked (1MB) and each chunk encrypted with unique IV
-5. Metadata (filename, size, type) encrypted separately
-6. Only encrypted data sent to server
-7. Kyber secret key encoded in URL fragment (never sent to server)
+Keys generated client-side (Web Crypto API)
+Files encrypted in browser before upload
+Key stored in URL fragment (never sent to server)
+Metadata (filenames, MIME types) encrypted alongside content
+Server stores only ciphertext — cannot decrypt
 
-### Download Flow
-1. Recipient receives URL with secret key in fragment
-2. Browser decapsulates to recover shared secret
-3. Shared secret becomes AES-256-GCM key
-4. Chunks downloaded and decrypted in browser
-5. File reconstructed locally
+## Why Post-Quantum?
 
-## Dependencies
+Adversaries harvest encrypted data today to decrypt when quantum computers arrive ("store now, decrypt later"). voider protects against this with CRYSTALS-Kyber, which has undergone nearly a decade of public cryptanalysis and is now NIST standardized.
 
-- `@noble/post-quantum` - CRYSTALS-Kyber implementation
+## Architecture
+
+| Layer | Algorithm | Purpose |
+|-------|-----------|---------|
+| Key Exchange | CRYSTALS-Kyber (ML-KEM-768) | Quantum-resistant key encapsulation |
+| Symmetric Encryption | AES-256-GCM | File and metadata encryption |
+| Key Derivation | HKDF-SHA256 | Derive encryption keys from shared secret |
+| Hashing | SHA-256 | Privacy-preserving rate limiting |
+
+## Security Properties
+
+- **Zero-knowledge**: Server never sees plaintext or encryption keys
+- **Forward secrecy**: Each transfer uses unique keys
+- **Quantum resistance**: Protected against future quantum attacks
+- **Ephemeral by design**: Files auto-delete in 1-24 hours
+
+## Documentation
+
+- [Full Cryptographic Specification](https://voider.app/crypto)
+- [Security Architecture](https://voider.app/security)
+- [Why Zero-Knowledge?](https://voider.app/why)
 
 ## License
 
-MIT License - See [LICENSE](LICENSE)
+MIT — use it, fork it, build on it. privacy should be accessible to everyone.
 
-## Security Audits
+## Contributing
 
-This code is published for transparency and public auditing. If you find a vulnerability, please report it responsibly.
+Contributions welcome. Please open an issue first to discuss what you would like to change.
 
-## About Voider
+If you find a security vulnerability, please report it privately to security@voider.dev.
 
-Voider is an end-to-end encrypted file sharing service. Learn more at [voider.app](https://voider.app)
+---
+
+∅ voider / private by default.
