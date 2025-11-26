@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in the Voider Protocol, please report it responsibly.
 
-**Email:** security@voider.app
+**Email:** teamvoider@protonmail.com
 
 Please include:
 - Description of the vulnerability
