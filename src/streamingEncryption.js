@@ -84,7 +84,8 @@ export async function generatePQCKey() {
   const { sharedSecret, cipherText } = encapsulateResult
 
   // 3. Convert shared secret to base64 string (for use as AES key)
-  const aesKeyString = arrayBufferToBase64(sharedSecret.buffer)
+  // Note: sharedSecret is Uint8Array, use it directly (not .buffer which may have wrong byteLength)
+  const aesKeyString = uint8ArrayToBase64(sharedSecret)
 
   return {
     aesKeyString,           // Use this for encrypting chunks
@@ -95,15 +96,22 @@ export async function generatePQCKey() {
 }
 
 /**
- * Helper to convert Uint8Array to base64
+ * Helper to convert Uint8Array to URL-safe base64
  */
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer)
+function uint8ArrayToBase64(bytes) {
   let binary = ''
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i])
   }
-  return btoa(binary)
+  // Return URL-safe base64 (- instead of +, _ instead of /, no padding)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+
+/**
+ * Helper to convert ArrayBuffer to base64 (for backward compatibility)
+ */
+function arrayBufferToBase64(buffer) {
+  return uint8ArrayToBase64(new Uint8Array(buffer))
 }
 
 /**
@@ -123,7 +131,15 @@ async function readChunk(file, chunkIndex) {
   const start = chunkIndex * CHUNK_SIZE
   const end = Math.min(start + CHUNK_SIZE, file.size)
   const blob = file.slice(start, end)
-  return await blob.arrayBuffer()
+  try {
+    return await blob.arrayBuffer()
+  } catch (err) {
+    // Provide a clearer error message for file access issues
+    if (err.name === 'NotFoundError') {
+      throw new Error(`File "${file.name}" is no longer accessible. It may have been moved, renamed, or deleted. Please re-select the file.`)
+    }
+    throw err
+  }
 }
 
 /**
