@@ -217,9 +217,16 @@ function arrayBufferToBase64(buffer) {
 
 /**
  * Convert base64 string to ArrayBuffer
+ * Handles both standard and URL-safe base64
  */
 function base64ToArrayBuffer(base64) {
-  const binary = atob(base64)
+  // Convert URL-safe base64 to standard base64
+  let standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/')
+  // Add padding if needed
+  while (standardBase64.length % 4) {
+    standardBase64 += '='
+  }
+  const binary = atob(standardBase64)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
@@ -232,8 +239,8 @@ function base64ToArrayBuffer(base64) {
  * @returns {{publicKey: Uint8Array, secretKey: Uint8Array}}
  */
 function generatePQCKeyPair() {
-  // Generate random seed for Kyber key generation
-  const seed = crypto.getRandomValues(new Uint8Array(32))
+  // Generate random seed for Kyber key generation (64 bytes required by ml_kem768)
+  const seed = crypto.getRandomValues(new Uint8Array(64))
 
   // Generate Kyber-768 keypair (NIST ML-KEM standard)
   const { publicKey, secretKey } = ml_kem768.keygen(seed)
