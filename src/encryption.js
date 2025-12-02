@@ -30,8 +30,8 @@ export async function generateKey() {
  * @returns {Promise<{publicKey: Uint8Array, secretKey: Uint8Array}>}
  */
 export async function generatePQCKeyPair() {
-  // Generate random seed for Kyber key generation
-  const seed = crypto.getRandomValues(new Uint8Array(32))
+  // Generate random seed for Kyber key generation (64 bytes required by ml_kem768)
+  const seed = crypto.getRandomValues(new Uint8Array(64))
 
   // Generate Kyber-768 keypair (NIST ML-KEM standard)
   const { publicKey, secretKey } = ml_kem768.keygen(seed)
