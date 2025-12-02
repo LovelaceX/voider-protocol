@@ -6,16 +6,16 @@
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![NIST FIPS 203](https://img.shields.io/badge/NIST-FIPS%20203-green.svg)](https://csrc.nist.gov/pubs/fips/203/final)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6.svg)](https://www.typescriptlang.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Audited](https://img.shields.io/badge/audited-6×-8b5cf6.svg)](https://paulmillr.com/noble/)
 
-[**Documentation**](https://voider.app/docs) · [**Security**](https://voider.app/security) · [**Report Vulnerability**](https://github.com/LovelaceX/voider-protocol/issues)
+[**Documentation**](https://voider.app/docs) · [**Security**](https://voider.app/security) · [**Report Vulnerability**](mailto:teamvoider@protonmail.com)
 
 </div>
 
 ## Overview
 
-voider-protocol is the cryptographic engine behind voider's privacy suite. Every tool uses the same battle-tested, quantum-resistant encryption.
+voider-protocol is the cryptographic engine behind voider's privacy suite. Every tool uses battle-tested, quantum-resistant encryption.
 
 All encryption happens client-side. The server only ever sees ciphertext. Decryption keys exist solely in URL fragments and never touch our infrastructure.
 
@@ -28,17 +28,27 @@ All encryption happens client-side. The server only ever sees ciphertext. Decryp
 
 ## Cryptographic Architecture
 
+### Files & Pastes (Quantum-Resistant)
+
 | Layer | Algorithm | Implementation | Purpose |
 |:------|:----------|:---------------|:--------|
 | **Key Exchange** | CRYSTALS-Kyber (ML-KEM-768) | [@noble/post-quantum](https://github.com/paulmillr/noble-post-quantum) | Quantum-resistant key encapsulation |
 | **Symmetric Encryption** | AES-256-GCM | Web Crypto API | File and metadata encryption |
-| **Key Derivation** | HKDF-SHA256 | Web Crypto API | Derive encryption keys from shared secret |
+| **Key Derivation** | Direct import | Web Crypto API | Kyber shared secret used directly as AES-256 key |
 | **Integrity** | SHA-256 | Web Crypto API | File verification, rate limiting |
+
+### Chat (Classical)
+
+| Layer | Algorithm | Implementation | Purpose |
+|:------|:----------|:---------------|:--------|
+| **Symmetric Encryption** | XChaCha20-Poly1305 | [tweetnacl](https://github.com/dchest/tweetnacl-js) | Message encryption (NaCl secretbox) |
+| **Key Distribution** | Random 256-bit | Web Crypto API | Shared via URL fragment |
+
+> [!NOTE]
+> **Why two schemes?** Files use quantum-resistant crypto for long-term protection. Chat messages are ephemeral (deleted in 1-24 hours), so classical NaCl provides excellent security with lower latency.
 
 
 ## Credits & Acknowledgments
-
-###
 
 Created by [**Paul Miller**](https://paulmillr.com/noble/) · [@paulmillr](https://x.com/paulmillr) · [GitHub](https://github.com/paulmillr)
 
@@ -71,7 +81,8 @@ noble has been professionally audited **6 times** by leading security firms:
 
 **1. Your Browser**
 - Generate Kyber keypair (quantum-resistant)
-- Derive AES-256 key via HKDF
+- Encapsulate to get shared secret
+- Use shared secret directly as AES-256 key
 - Encrypt file + metadata with AES-256-GCM
 - Upload ciphertext only
 
@@ -99,6 +110,7 @@ noble has been professionally audited **6 times** by leading security firms:
 | **Ephemeral by design** | Files auto-delete in 1-24 hours |
 | **Metadata protection** | Filenames and MIME types encrypted alongside content |
 
+
 ## Why Post-Quantum Now?
 
 > [!WARNING]
@@ -108,37 +120,44 @@ noble has been professionally audited **6 times** by leading security firms:
 >
 > CRYSTALS-Kyber (ML-KEM) has undergone nearly a decade of public cryptanalysis and is now [NIST FIPS 203 standardized](https://csrc.nist.gov/pubs/fips/203/final). voider protects your data against both current and future threats.
 
-## Installation
 
-```bash
-npm install voider-protocol
-import { encrypt, decrypt, generateKeyPair } from 'voider-protocol'
+## Usage
+
+```javascript
+import { 
+  generatePQCKeyPair, 
+  encapsulatePQC,
+  decapsulatePQC,
+  encryptFileWithPQC, 
+  decryptFileWithPQC 
+} from './encryption.js'
 
 // Generate quantum-resistant keypair
-const { publicKey, secretKey } = await generateKeyPair()
+const { publicKey, secretKey } = await generatePQCKeyPair()
 
-// Encrypt
-const { ciphertext, encapsulatedKey } = await encrypt(file, publicKey)
+// Encrypt file
+const { 
+  encryptedData, 
+  iv, 
+  kyberPublicKey,
+  kyberCipherText,
+  kyberSecretKey 
+} = await encryptFileWithPQC(file, onProgress)
 
-// Decrypt
-const plaintext = await decrypt(ciphertext, encapsulatedKey, secretKey
-
+// Decrypt file
+const plaintext = await decryptFileWithPQC(
+  encryptedData, 
+  iv, 
+  kyberCipherText, 
+  kyberSecretKey
+)
 ```
-
-## Documentation
-Resource	Description
-Cryptographic Specification	Full technical details of our encryption implementation
-Security Architecture	Threat model and design decisions
-Why Zero-Knowledge?	What happens under legal compulsion
-Why @noble?	Our cryptographic library choices explained
 
 ## Contributing
 Contributions welcome. Please open an issue first to discuss what you would like to change.
-[!IMPORTANT] Security Vulnerabilities If you discover a security vulnerability, please report it privately to teamvoider@protonmail.com. Do not open a public issue. Responsible disclosure is appreciated.
+
+## Security Vulnerabilities
+If you discover a security vulnerability, please report it privately to teamvoider@protonmail.com. Do not open a public issue. Responsible disclosure is appreciated.
 
 ## License
-
 MIT — use it, fork it, build on it. Privacy should be accessible to everyone.
-
-## 
-<div align="center"> ∅ voider · private by default. </div>
