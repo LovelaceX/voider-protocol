@@ -157,7 +157,7 @@ const plaintext = await decryptFileWithPQC(
 Contributions welcome. Please open an issue first to discuss what you would like to change.
 
 ## Security Vulnerabilities
-If you discover a security vulnerability, please report it privately to teamvoider@protonmail.com. Do not open a public issue. Responsible disclosure is appreciated.
+If you discover a security vulnerability, please report it privately to security@voider.app. Do not open a public issue. Responsible disclosure is appreciated.
 
 ## License
 MIT — use it, fork it, build on it. Privacy should be accessible to everyone.
